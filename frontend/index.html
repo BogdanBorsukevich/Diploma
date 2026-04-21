@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЛогістикаКомплекс — Тестувально-навчальна система</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=e-Ukraine:wght@300;400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   CSS VARIABLES & RESET
+═══════════════════════════════════════════ */
+:root {
+  --bg:         #f0f2f5;
+  --surface:    #ffffff;
+  --surface2:   #f7f8fa;
+  --border:     #dde1e9;
+  --accent:     #1a56db;
+  --accent2:    #0e3fb0;
+  --danger:     #e02424;
+  --success:    #057a55;
+  --warning:    #c27803;
+  --text:       #111928;
+  --text2:      #4b5563;
+  --text3:      #9ca3af;
+  --shadow:     0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.05);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,.12);
+  --radius:     10px;
+  --mono:       'JetBrains Mono', monospace;
+  --sans:       'Segoe UI', system-ui, sans-serif;
+  /* cluster colours */
+  --c0:#e63946; --c1:#2196f3; --c2:#4caf50; --c3:#ff9800;
+  --c4:#9c27b0; --c5:#00bcd4; --c6:#ff5722; --c7:#607d8b;
+  --c8:#795548; --c9:#009688;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;font-size:14px}
+button{cursor:pointer;font-family:inherit}
+input,select{font-family:inherit}
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+header{
+  background:var(--accent);
+  color:#fff;
+  padding:0 24px;
+  height:56px;
+  display:flex;align-items:center;gap:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+  z-index:100;
+  flex-shrink:0;
+}
+header h1{font-size:16px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+header span.sub{font-size:12px;opacity:.75;white-space:nowrap}
+.header-stats{margin-left:auto;display:flex;gap:16px}
+.hstat{text-align:center;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:6px;min-width:60px}
+.hstat .n{font-size:18px;font-weight:700;line-height:1}
+.hstat .l{font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.5px}
+
+/* ═══════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════ */
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:0;flex-shrink:0;padding:0 16px}
+.tab-btn{
+  padding:14px 20px;font-size:14px;font-weight:600;
+  border:none;background:none;color:var(--text2);
+  border-bottom:3px solid transparent;
+  transition:all .2s;display:flex;align-items:center;gap:8px;
+}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-btn:hover{color:var(--text)}
+.tab-icon{font-size:16px}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+.main{display:flex;flex:1;overflow:hidden;min-height:0}
+.panel{display:none;flex:1;overflow:auto}
+.panel.active{display:flex}
+
+/* ════ SCENARIO PANEL ════ */
+#panel-scenario{flex-direction:column;padding:24px;gap:20px;max-width:900px;margin:0 auto;width:100%}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}
+.card-body{padding:20px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select{
+  padding:8px 12px;border:1px solid var(--border);border-radius:7px;
+  font-size:14px;background:var(--surface2);color:var(--text);
+  transition:border-color .2s;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.field input.error{border-color:var(--danger)}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:9px 18px;border-radius:7px;border:none;font-size:14px;font-weight:600;
+  transition:all .15s;
+}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-primary:disabled{background:#9ca3af;cursor:not-allowed}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--border)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-free{background:#d1fae5;color:#065f46}
+.badge-work{background:#dbeafe;color:#1e3a8a}
+.badge-done{background:#f3f4f6;color:#374151}
+.badge-noise{background:#fee2e2;color:#991b1b}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.summary-tile{background:var(--surface2);border-radius:8px;padding:14px;text-align:center;border:1px solid var(--border)}
+.summary-tile .big{font-size:28px;font-weight:700;color:var(--accent)}
+.summary-tile .sm{font-size:12px;color:var(--text2);margin-top:4px}
+
+/* ════ DISPATCHER PANEL ════ */
+#panel-dispatch{flex-direction:row;overflow:hidden}
+.side-panel{width:320px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.side-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.map-wrap{flex:1;position:relative}
+#dispatch-map{width:100%;height:100%}
+.algo-selector{display:flex;flex-direction:column;gap:6px}
+.algo-btn{
+  padding:10px 14px;border-radius:7px;border:2px solid var(--border);
+  background:var(--surface2);font-size:13px;font-weight:600;color:var(--text);
+  text-align:left;display:flex;align-items:center;gap:10px;
+  transition:all .2s;
+}
+.algo-btn.active{border-color:var(--accent);background:#eff6ff;color:var(--accent)}
+.algo-params{display:none;flex-direction:column;gap:10px;padding:10px;background:var(--surface2);border-radius:7px;margin-top:4px}
+.algo-params.visible{display:flex}
+.result-bar{padding:12px;background:var(--surface2);border-radius:7px;font-size:12px;display:flex;flex-direction:column;gap:6px}
+.result-row{display:flex;justify-content:space-between;align-items:center}
+.cluster-legend{display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto}
+.legend-row{display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 0}
+.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.noise-dot{background:#ff0000;width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ════ COURIER PANEL ════ */
+#panel-courier{flex-direction:row;overflow:hidden}
+.courier-left{width:340px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.courier-right{position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden}
+.orders-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px;flex-shrink:0}
+.orders-table-wrap{flex:1;overflow-y:auto}
+table.orders-tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.orders-tbl thead{background:var(--surface2);position:sticky;top:0;z-index:5}
+table.orders-tbl th{padding:10px 12px;text-align:left;font-weight:700;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
+table.orders-tbl td{padding:9px 12px;border-bottom:1px solid #f3f4f6}
+table.orders-tbl tr:hover td{background:#f9fafb}
+table.orders-tbl tr.selected td{background:#eff6ff}
+.filter-section{padding:14px 16px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.filter-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.filter-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:100px}
+.filter-field label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.filter-field input{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--surface2);width:100%}
+.filter-field input:focus{outline:none;border-color:var(--accent)}
+.route-sheet{position:absolute;right:0;top:0;bottom:0;width:360px;background:var(--surface);border-left:1px solid var(--border);display:none;flex-direction:column;overflow:hidden;z-index:9999;box-shadow:var(--shadow-lg)}
+.route-sheet.visible{display:flex}
+.route-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.route-body{flex:1;overflow-y:auto;padding:16px}
+.route-item{background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:10px;border-left:4px solid var(--accent)}
+.route-total{margin-top:16px;padding:12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;font-weight:700}
+.courier-selector{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.courier-selector label{font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap}
+.courier-selector select{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--surface2)}
+
+/* Map popup styles */
+.map-popup{font-family:var(--sans);min-width:160px}
+.map-popup strong{font-size:13px;display:block;margin-bottom:6px}
+.map-popup table{font-size:12px;border-collapse:collapse}
+.map-popup td{padding:2px 6px 2px 0}
+.map-popup td:first-child{font-weight:600;color:var(--text2)}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#111;color:#fff;padding:10px 20px;border-radius:8px;
+  font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;
+  max-width:360px;text-align:center}
+#toast.show{opacity:1}
+
+/* Loading overlay */
+#loading{position:fixed;inset:0;background:rgba(255,255,255,.7);
+  display:none;align-items:center;justify-content:center;z-index:10000;
+  flex-direction:column;gap:12px;font-weight:600;font-size:14px;color:var(--accent)}
+#loading.active{display:flex}
+.spinner{width:32px;height:32px;border:3px solid #dbeafe;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* upload area */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2)}
+.upload-zone:hover{border-color:var(--accent);background:#eff6ff}
+.upload-zone input{display:none}
+
+/* info box */
+.info-box{padding:10px 14px;border-radius:7px;font-size:12px;line-height:1.6}
+.info-box.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.info-box.warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+.info-box.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46}
+
+/* cluster colours for borders/dots */
+.cc-0{border-left-color:var(--c0)!important} .cc-1{border-left-color:var(--c1)!important}
+.cc-2{border-left-color:var(--c2)!important} .cc-3{border-left-color:var(--c3)!important}
+.cc-4{border-left-color:var(--c4)!important} .cc-5{border-left-color:var(--c5)!important}
+.cc-6{border-left-color:var(--c6)!important} .cc-7{border-left-color:var(--c7)!important}
+.cc-8{border-left-color:var(--c8)!important} .cc-9{border-left-color:var(--c9)!important}
+
+.sep{height:1px;background:var(--border);margin:4px 0}
+.text-muted{color:var(--text3)}
+.text-sm{font-size:12px}
+.font-mono{font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<!-- ════════ HEADER ════════ -->
+<header>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span style="font-size:22px">🗺️</span>
+    <div>
+      <h1>ЛогістикаКомплекс</h1>
+      <span class="sub">Тестувально-навчальна система кластеризації та класифікації</span>
+    </div>
+  </div>
+  <div class="header-stats" id="hstats">
+    <div class="hstat"><div class="n" id="hs-total">—</div><div class="l">Замовлень</div></div>
+    <div class="hstat"><div class="n" id="hs-free">—</div><div class="l">Вільних</div></div>
+    <div class="hstat"><div class="n" id="hs-done">—</div><div class="l">Виконано</div></div>
+    <div class="hstat"><div class="n" id="hs-hubs">—</div><div class="l">Хабів</div></div>
+  </div>
+</header>
+
+<!-- ════════ TABS ════════ -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('scenario')" id="tab-scenario">
+    <span class="tab-icon">⚙️</span> Сценарій
+  </button>
+  <button class="tab-btn" onclick="switchTab('dispatch')" id="tab-dispatch">
+    <span class="tab-icon">📍</span> Диспетчер
+  </button>
+  <button class="tab-btn" onclick="switchTab('courier')" id="tab-courier">
+    <span class="tab-icon">🚴</span> Кур'єр
+  </button>
+</div>
+
+<!-- ════════ PANELS ════════ -->
+<div class="main">
+
+<!-- ──── SCENARIO PANEL ──── -->
+<div class="panel active" id="panel-scenario">
+  <div class="card">
+    <div class="card-header">⚙️ Формування сценарію логістичного середовища</div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>Кількість замовлень</label>
+          <input type="number" id="n_orders" value="150" min="10" max="2000">
+        </div>
+        <div class="field">
+          <label>Кількість хабів (маркетів)</label>
+          <input type="number" id="n_hubs" value="5" min="2" max="10">
+        </div>
+        <div class="field">
+          <label>Кількість кур'єрів</label>
+          <input type="number" id="n_couriers" value="8" min="1" max="30">
+        </div>
+        <div class="field">
+          <label>Відсоток аномалій (%)</label>
+          <input type="number" id="noise_pct" value="5" min="0" max="30">
+        </div>
+        <div class="field">
+          <label>Широта (min)</label>
+          <input type="number" id="lat_min" value="50.30" step="0.01">
+        </div>
+        <div class="field">
+          <label>Широта (max)</label>
+          <input type="number" id="lat_max" value="50.60" step="0.01">
+        </div>
+        <div class="field">
+          <label>Довгота (min)</label>
+          <input type="number" id="lon_min" value="30.40" step="0.01">
+        </div>
+        <div class="field">
+          <label>Довгота (max)</label>
+          <input type="number" id="lon_max" value="30.70" step="0.01">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="generateScenario()">🔄 Генерувати сценарій</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('csv-upload').click()">📂 Завантажити Excel/CSV замовлень</button>
+        <input type="file" id="csv-upload" accept=".xlsx,.xls,.csv" style="display:none" onchange="uploadCSV(event)">
+        <button class="btn btn-secondary" onclick="document.getElementById('couriers-upload').click()">🚴 Завантажити Excel/CSV кур'єрів</button>
+        <input type="file" id="couriers-upload" accept=".xlsx,.xls,.csv" style="display:none" onchange="uploadCouriers(event)">
+      </div>
+      <div class="info-box info" style="margin-top:12px">
+        Формати файлів:<br>
+        Замовлення (Excel/CSV): <span class="font-mono">lat,lon,weight,price</span> (order_id опціональний).<br>
+        Кур'єри (Excel/CSV): <span class="font-mono">courier_id,name,vehicle_type,hub_id,max_weight,max_dist_km,min_price,lat,lon</span>.
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="scenario-summary" style="display:none">
+    <div class="card-header">📊 Поточний сценарій</div>
+    <div class="card-body">
+      <div class="summary-grid">
+        <div class="summary-tile"><div class="big" id="sum-orders">0</div><div class="sm">Замовлень</div></div>
+        <div class="summary-tile"><div class="big" id="sum-hubs">0</div><div class="sm">Хабів</div></div>
+        <div class="summary-tile"><div class="big" id="sum-couriers">0</div><div class="sm">Кур'єрів</div></div>
+        <div class="summary-tile"><div class="big" id="sum-clustered" style="color:#6b7280">Ні</div><div class="sm">Кластеризовано</div></div>
+      </div>
+      <div style="margin-top:16px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px">Хаби (маркети):</div>
+        <div id="hubs-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      </div>
+      <div style="margin-top:16px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px">Кур'єри:</div>
+        <div id="couriers-list" style="font-size:12px;line-height:1.8;max-height:160px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">📖 Довідка</div>
+    <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--text2)">
+      <strong>Сценарій</strong> — вхідні дані для симуляції. Вкажіть параметри та натисніть «Генерувати».<br>
+      <strong>Диспетчер</strong> — запуск кластеризації (K-Means / DBSCAN / OPTICS) та перегляд карти кластерів.<br>
+      <strong>Кур'єр</strong> — вибір замовлень за власними критеріями (вага, ціна, відстань), прийняття та відмітка виконання.<br><br>
+      <b>K-Means</b>: групує замовлення навколо n фіксованих хабів (метод k-середніх). Ідеально для відомої кількості зон.<br>
+      <b>DBSCAN</b>: виявляє аномальні замовлення (поза зонами обслуговування) за параметрами щільності ε та MinPts.<br>
+      <b>OPTICS</b>: розширення DBSCAN для районів із різною щільністю забудови.
+    </div>
+  </div>
+</div>
+
+<!-- ──── DISPATCH PANEL ──── -->
+<div class="panel" id="panel-dispatch">
+  <div class="side-panel">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;flex-shrink:0">
+      🧮 Параметри кластеризації
+    </div>
+    <div class="side-body">
+      <!-- Algorithm selector -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:8px">Алгоритм</div>
+        <div class="algo-selector">
+          <button class="algo-btn active" id="algo-kmeans" onclick="selectAlgo('kmeans')">
+            <span>📍</span><span>K-Means<br><small style="font-weight:400;opacity:.7">Прив'язка до хабів</small></span>
+          </button>
+          <button class="algo-btn" id="algo-dbscan" onclick="selectAlgo('dbscan')">
+            <span>🔴</span><span>DBSCAN<br><small style="font-weight:400;opacity:.7">Виявлення аномалій</small></span>
+          </button>
+          <button class="algo-btn" id="algo-optics" onclick="selectAlgo('optics')">
+            <span>🔵</span><span>OPTICS<br><small style="font-weight:400;opacity:.7">Змінна щільність</small></span>
+          </button>
+        </div>
+        <div class="algo-params" id="params-dbscan">
+          <div class="field">
+            <label>Радіус ε (км)</label>
+            <input type="number" id="eps" value="1.0" step="0.1" min="0.1">
+          </div>
+          <div class="field">
+            <label>MinPts</label>
+            <input type="number" id="min_pts_dbscan" value="3" min="1">
+          </div>
+        </div>
+        <div class="algo-params" id="params-optics">
+          <div class="field">
+            <label>MinPts</label>
+            <input type="number" id="min_pts_optics" value="3" min="1">
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="runCluster()" id="btn-cluster" style="width:100%">
+          ▶️ Запустити кластеризацію
+        </button>
+      </div>
+
+      <!-- Results -->
+      <div id="cluster-results" style="display:none">
+        <div class="sep"></div>
+        <div class="result-bar" id="result-bar"></div>
+        <div class="sep"></div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);margin-bottom:8px">Легенда кластерів</div>
+        <div class="cluster-legend" id="cluster-legend"></div>
+      </div>
+
+      <!-- Map controls -->
+      <div class="sep"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="fitMapBounds()">🗺️ Увесь регіон</button>
+        <button class="btn btn-secondary btn-sm" onclick="toggleHubs()">📍 Хаби</button>
+        <button class="btn btn-secondary btn-sm" onclick="toggleNoise()">🔴 Аномалії</button>
+      </div>
+    </div>
+  </div>
+  <div class="map-wrap">
+    <div id="dispatch-map"></div>
+  </div>
+</div>
+
+<!-- ──── COURIER PANEL ──── -->
+<div class="panel" id="panel-courier">
+  <div class="courier-left">
+    <div class="courier-selector">
+      <label>Кур'єр:</label>
+      <select id="courier-select" onchange="onCourierChange()"></select>
+      <button class="btn btn-secondary btn-sm" onclick="loadCourierDefaults()">↻</button>
+    </div>
+    <div id="courier-info" style="padding:0 16px 12px;display:none">
+      <div id="courier-info-box" class="info-box info text-sm"></div>
+    </div>
+    <div class="filter-section">
+      <div style="font-weight:700;font-size:13px">🔍 Критерії відбору</div>
+      <div class="filter-row">
+        <div class="filter-field">
+          <label>Максимальна вага (кг)</label>
+          <input type="number" id="f-max-weight" placeholder="Не обмежено" min="0" step="0.5">
+        </div>
+        <div class="filter-field">
+          <label>Мінімальна ціна (грн)</label>
+          <input type="number" id="f-min-price" placeholder="Не обмежено" min="0">
+        </div>
+      </div>
+      <div class="filter-row">
+        <div class="filter-field">
+          <label>Максимальна ціна (грн)</label>
+          <input type="number" id="f-max-price" placeholder="Не обмежено" min="0">
+        </div>
+        <div class="filter-field">
+          <label>Макс. відстань (км)</label>
+          <input type="number" id="f-max-dist" placeholder="Не обмежено" min="0" step="0.5">
+        </div>
+      </div>
+      <div class="filter-row">
+        <div class="filter-field">
+          <label>Хаб (зона)</label>
+          <select id="f-hub">
+            <option value="">Усі хаби</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="applyFilter()" style="flex:1">✔ Застосувати фільтр</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearFilter()">✕</button>
+      </div>
+    </div>
+    <div class="orders-header">
+      <span>Доступні замовлення</span>
+      <span id="orders-count" class="badge badge-free">0</span>
+    </div>
+    <div class="orders-table-wrap">
+      <table class="orders-tbl">
+        <thead>
+          <tr>
+            <th>№</th><th>Вага кг</th><th>Ціна грн</th><th>Хаб</th><th>Дистанція</th>
+          </tr>
+        </thead>
+        <tbody id="orders-tbody"></tbody>
+      </table>
+      <div id="no-orders" style="text-align:center;padding:32px;color:var(--text3);display:none">
+        😕 Замовлень не знайдено.<br>Спробуйте пом'якшити критерії.
+      </div>
+    </div>
+  </div>
+
+  <div class="courier-right" style="position:relative">
+    <div class="orders-header" style="flex-shrink:0">
+      <span>Обране замовлення</span>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-success btn-sm" id="btn-accept" onclick="acceptOrder()" disabled>✔ Прийняти</button>
+        <button class="btn btn-secondary btn-sm" onclick="showRouteSheet()">📋 Маршрутний лист</button>
+      </div>
+    </div>
+    <div id="selected-order-info" style="padding:16px;display:none">
+      <div id="sel-order-box" class="card" style="padding:16px;font-size:13px;line-height:1.8"></div>
+    </div>
+    <div id="courier-map-wrap" style="flex:1;min-height:300px;position:relative">
+      <div id="courier-map" style="width:100%;height:100%"></div>
+    </div>
+
+    <!-- Route sheet -->
+    <div class="route-sheet" id="route-sheet">
+      <div class="route-header">
+        <strong>📋 Маршрутний лист</strong>
+        <button class="btn btn-secondary btn-sm" onclick="hideRouteSheet()">✕ Закрити</button>
+      </div>
+      <div class="route-body" id="route-body"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<div id="toast"></div>
+<div id="loading"><div class="spinner"></div><span id="loading-text">Зачекайте...</span></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  GLOBAL STATE
+// ═══════════════════════════════════════════
+const API = '';  // empty = same origin
+let G = { hubs:[], orders:[], couriers:[], clusters:{}, clustered:false };
+let selectedOrderId = null;
+let selectedCourierId = null;
+let dispatchMap = null, courierMap = null;
+let dispatchLayers = { orders:null, hubs:null, noise:null };
+let courierMapMarkers = [];
+let currentAlgo = 'kmeans';
+let showHubsFlag = true, showNoiseFlag = true;
+
+function makeClusterColors(count){
+  const segments = [
+    {start:200, end:260, baseS:74, baseL:56},
+    {start:270, end:320, baseS:72, baseL:56},
+    {start:160, end:190, baseS:68, baseL:55},
+    {start:35,  end:55,  baseS:76, baseL:58},
+  ];
+  const palette = [];
+  const rounds = Math.max(1, Math.ceil(count / segments.length));
+
+  for(let round = 0; palette.length < count; round++){
+    for(const seg of segments){
+      if(palette.length >= count) break;
+      const t = rounds === 1 ? 0.5 : round / (rounds - 1);
+      const hue = Math.round(seg.start + (seg.end - seg.start) * t);
+      const sat = Math.max(52, seg.baseS - round * 6);
+      const light = Math.min(68, Math.max(44, seg.baseL + (round % 2 ? -4 : 4)));
+      palette.push(`hsl(${hue}, ${sat}%, ${light}%)`);
+    }
+  }
+
+  for(let i = palette.length; i < count; i++){
+    const hue = Math.round(20 + ((i * 137.508) % 300));
+    const sat = Math.max(52, 74 - Math.floor(i / 10) * 6);
+    const light = Math.min(68, Math.max(44, 56 + ((i % 3) - 1) * 4));
+    palette.push(`hsl(${hue}, ${sat}%, ${light}%)`);
+  }
+
+  return palette;
+}
+
+function clusterColorByIndex(idx, count){
+  const palette = makeClusterColors(Math.max(count, idx + 1));
+  return palette[idx % palette.length];
+}
+
+// ═══════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════
+function loading(on, msg='Обробка...'){
+  document.getElementById('loading').classList.toggle('active',on);
+  document.getElementById('loading-text').textContent = msg;
+}
+function toast(msg, ms=3000){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), ms);
+}
+async function api(path, method='GET', body=null){
+  const opts = {method, headers:{'Content-Type':'application/json'}};
+  if(body) opts.body = JSON.stringify(body);
+  const r = await fetch(API+path, opts);
+  const d = await r.json();
+  if(!r.ok) throw new Error(d.error || 'Помилка сервера');
+  return d;
+}
+function hubName(hub_id){
+  const h = G.hubs.find(h=>h.hub_id===hub_id);
+  return h ? h.name : `Хаб #${hub_id}`;
+}
+
+// ═══════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='dispatch' && !dispatchMap) initDispatchMap();
+  if(tab==='courier' && !courierMap) initCourierMap();
+  if(tab==='courier') refreshCourierUI();
+}
+
+// ═══════════════════════════════════════════
+//  SCENARIO
+// ═══════════════════════════════════════════
+async function generateScenario(){
+  const params = {
+    n_orders:   +document.getElementById('n_orders').value,
+    n_hubs:     +document.getElementById('n_hubs').value,
+    n_couriers: +document.getElementById('n_couriers').value,
+    noise_pct:  +document.getElementById('noise_pct').value / 100,
+    lat_range:  [+document.getElementById('lat_min').value, +document.getElementById('lat_max').value],
+    lon_range:  [+document.getElementById('lon_min').value, +document.getElementById('lon_max').value],
+  };
+  if(params.lat_range[0]>=params.lat_range[1] || params.lon_range[0]>=params.lon_range[1]){
+    toast('❌ Некоректні діапазони координат'); return;
+  }
+  loading(true,'Генерація сценарію...');
+  try{
+    await api('/api/scenario/generate','POST',params);
+    await refreshState();
+    toast('✅ Сценарій згенеровано');
+  }catch(e){ toast('❌ '+e.message); }
+  finally{ loading(false); }
+}
+
+async function uploadCSV(evt){
+  const file = evt.target.files[0]; if(!file) return;
+  
+  // Запитати кількість хабів
+  const n_hubs_str = prompt('Скільки хабів створити?', '15');
+  if(n_hubs_str === null) return;
+  const n_hubs = parseInt(n_hubs_str) || 5;
+  const n_couriers = 8;  // фіксована кількість
+  
+  const fd = new FormData(); fd.append('file', file);
+  loading(true,'Завантаження замовлень...');
+  try{
+    const r = await fetch(API+'/api/scenario/upload',{method:'POST',body:fd});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error);
+    // auto-gen hubs/couriers
+    await api('/api/scenario/generate','POST',{
+      n_orders:0, n_hubs, n_couriers,
+      lat_range:[+document.getElementById('lat_min').value,+document.getElementById('lat_max').value],
+      lon_range:[+document.getElementById('lon_min').value,+document.getElementById('lon_max').value],
+      noise_pct:0
+    });
+    // re-upload to restore orders
+    const fd2 = new FormData(); fd2.append('file', file);
+    await fetch(API+'/api/scenario/upload',{method:'POST',body:fd2});
+    await refreshState();
+    toast(`✅ Завантажено ${d.n_orders} замовлень (${n_hubs} хабів)`);
+  }catch(e){ toast('❌ '+e.message); }
+  finally{ loading(false); evt.target.value=''; }
+}
+
+async function uploadCouriers(evt){
+  const file = evt.target.files[0]; if(!file) return;
+  const fd = new FormData(); fd.append('file', file);
+  loading(true,'Завантаження Excel кур\'єрів...');
+  try{
+    const r = await fetch(API+'/api/couriers/upload',{method:'POST',body:fd});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error);
+    await refreshState();
+    toast(`✅ Завантажено ${d.n_couriers} кур\'єрів з Excel`);
+  }catch(e){ toast('❌ '+e.message); }
+  finally{ loading(false); evt.target.value=''; }
+}
+
+async function refreshState(){
+  const s = await api('/api/state');
+  G = s;
+  updateHeaderStats();
+  renderScenarioSummary();
+  if(dispatchMap) renderDispatchMap();
+  if(courierMap) refreshCourierUI();
+}
+
+function updateHeaderStats(){
+  const free = G.orders.filter(o=>o.status==='Вільне').length;
+  const done = G.orders.filter(o=>o.status==='Виконано').length;
+  document.getElementById('hs-total').textContent = G.orders.length || '—';
+  document.getElementById('hs-free').textContent  = G.orders.length ? free : '—';
+  document.getElementById('hs-done').textContent  = G.orders.length ? done : '—';
+  document.getElementById('hs-hubs').textContent  = G.hubs.length || '—';
+}
+
+function renderScenarioSummary(){
+  if(!G.orders.length){ document.getElementById('scenario-summary').style.display='none'; return; }
+  document.getElementById('scenario-summary').style.display='block';
+  document.getElementById('sum-orders').textContent   = G.orders.length;
+  document.getElementById('sum-hubs').textContent     = G.hubs.length;
+  document.getElementById('sum-couriers').textContent = G.couriers.length;
+  const cl = document.getElementById('sum-clustered');
+  cl.textContent = G.clustered ? 'Так' : 'Ні';
+  cl.style.color = G.clustered ? 'var(--success)' : '#6b7280';
+
+  const hl = document.getElementById('hubs-list');
+  hl.innerHTML = G.hubs.map(h=>
+    `<span style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:20px;padding:3px 10px;font-size:12px">
+      📍 ${h.name}
+    </span>`
+  ).join('');
+
+  const cl2 = document.getElementById('couriers-list');
+  const vIcons = {'Піший':'🚶','Велосипед':'🚲','Мотоцикл':'🏍️','Авто':'🚗','Мікровантажівка':'🚐'};
+  cl2.innerHTML = G.couriers.map(c=>
+    `<span style="margin-right:16px">${vIcons[c.vehicle_type]||'📦'} <b>${c.name}</b> — ${c.vehicle_type} (до ${c.max_weight}кг, від ${c.min_price}грн)</span>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════
+//  DISPATCH MAP
+// ═══════════════════════════════════════════
+function initDispatchMap(){
+  dispatchMap = L.map('dispatch-map').setView([50.45,30.55],11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap',maxZoom:19
+  }).addTo(dispatchMap);
+  renderDispatchMap();
+}
+
+function renderDispatchMap(){
+  if(!dispatchMap) return;
+  // Clear old layers
+  [dispatchLayers.orders, dispatchLayers.hubs, dispatchLayers.noise].forEach(l=>{if(l)l.clearLayers()});
+  dispatchLayers.orders = L.layerGroup().addTo(dispatchMap);
+  dispatchLayers.hubs   = L.layerGroup().addTo(dispatchMap);
+  dispatchLayers.noise  = L.layerGroup().addTo(dispatchMap);
+
+  if(!G.orders.length) return;
+
+  // Hub index
+  const hubIdx = {};
+  G.hubs.forEach((h,i)=>hubIdx[h.hub_id]=i);
+  const clusterColors = makeClusterColors(G.hubs.length || 1);
+
+  // Orders
+  G.orders.forEach(o=>{
+    const isNoise = o.status==='Аномалія' || o.hub_id===null && G.clustered;
+    const color = isNoise ? '#ff0000' : (o.hub_id != null ? clusterColors[hubIdx[o.hub_id] % clusterColors.length] : '#9ca3af');
+    const radius  = isNoise ? 5 : 6;
+    const marker  = L.circleMarker([o.lat, o.lon],{
+      radius, color:'#fff', weight:1, fillColor:color, fillOpacity:0.85
+    });
+    marker.bindPopup(`<div class="map-popup">
+      <strong>Замовлення #${o.order_id}</strong>
+      <table>
+        <tr><td>Вага:</td><td>${o.weight} кг</td></tr>
+        <tr><td>Ціна:</td><td>${o.price} грн</td></tr>
+        <tr><td>Статус:</td><td>${o.status}</td></tr>
+        ${o.hub_id ? `<tr><td>Хаб:</td><td>${hubName(o.hub_id)}</td></tr>` : ''}
+      </table>
+    </div>`);
+    if(isNoise) dispatchLayers.noise.addLayer(marker);
+    else        dispatchLayers.orders.addLayer(marker);
+  });
+
+  // Hubs
+  G.hubs.forEach((h,i)=>{
+    const color = clusterColors[i % clusterColors.length];
+    const icon  = L.divIcon({
+      className:'',
+      html:`<div style="background:${color};width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,
+      iconSize:[28,28], iconAnchor:[14,28]
+    });
+    L.marker([h.lat,h.lon],{icon})
+      .bindPopup(`<div class="map-popup"><strong>📍 ${h.name}</strong><br>ID: ${h.hub_id}</div>`)
+      .addTo(dispatchLayers.hubs);
+  });
+
+  fitMapBounds();
+}
+
+function fitMapBounds(){
+  if(!dispatchMap || !G.orders.length) return;
+  const pts = [...G.orders.map(o=>[o.lat,o.lon]), ...G.hubs.map(h=>[h.lat,h.lon])];
+  dispatchMap.fitBounds(L.latLngBounds(pts).pad(0.05));
+}
+function toggleHubs(){
+  showHubsFlag = !showHubsFlag;
+  if(dispatchLayers.hubs)
+    showHubsFlag ? dispatchMap.addLayer(dispatchLayers.hubs) : dispatchMap.removeLayer(dispatchLayers.hubs);
+}
+function toggleNoise(){
+  showNoiseFlag = !showNoiseFlag;
+  if(dispatchLayers.noise)
+    showNoiseFlag ? dispatchMap.addLayer(dispatchLayers.noise) : dispatchMap.removeLayer(dispatchLayers.noise);
+}
+
+function selectAlgo(algo){
+  currentAlgo = algo;
+  ['kmeans','dbscan','optics'].forEach(a=>{
+    document.getElementById('algo-'+a).classList.toggle('active', a===algo);
+    const p = document.getElementById('params-'+a);
+    if(p) p.classList.toggle('visible', a===algo);
+  });
+}
+
+async function runCluster(){
+  if(!G.orders.length){ toast('⚠️ Спочатку сформуйте сценарій'); return; }
+  const body = {algorithm: currentAlgo};
+  if(currentAlgo==='dbscan'){
+    const eps = parseFloat(document.getElementById('eps').value);
+    const mp  = parseInt(document.getElementById('min_pts_dbscan').value);
+    if(eps<=0){ toast('❌ Значення ε має бути > 0'); document.getElementById('eps').classList.add('error'); return; }
+    document.getElementById('eps').classList.remove('error');
+    body.eps = eps; body.min_pts = mp;
+  }
+  if(currentAlgo==='optics'){
+    body.min_pts = parseInt(document.getElementById('min_pts_optics').value);
+  }
+
+  loading(true, `Виконання ${currentAlgo.toUpperCase()}...`);
+  try{
+    const res = await api('/api/cluster','POST',body);
+    await refreshState();
+    renderClusterResults(res);
+    renderDispatchMap();
+    toast(`✅ Кластеризацію завершено за ${res.exec_ms} мс`);
+  }catch(e){ toast('❌ '+e.message); }
+  finally{ loading(false); }
+}
+
+function renderClusterResults(res){
+  document.getElementById('cluster-results').style.display = 'block';
+  const bar = document.getElementById('result-bar');
+  const noiseCount = res.noise_count || 0;
+  const validOrders = G.orders.length - noiseCount;
+  bar.innerHTML = `
+    <div class="result-row"><span>Алгоритм</span><strong>${res.algorithm.toUpperCase()}</strong></div>
+    <div class="result-row"><span>Час виконання</span><strong class="font-mono">${res.exec_ms} мс</strong></div>
+    ${res.wcss!=null?`<div class="result-row"><span>WCSS</span><strong class="font-mono">${res.wcss.toLocaleString()}</strong></div>`:''}
+    <div class="result-row"><span>Оброблено замовлень</span><strong>${validOrders}</strong></div>
+    <div class="result-row"><span>Аномалії (шум)</span><strong style="color:var(--danger)">${noiseCount}</strong></div>
+  `;
+
+  const legend = document.getElementById('cluster-legend');
+  legend.innerHTML = '';
+  const legendColors = makeClusterColors(G.hubs.length || 1);
+  G.hubs.forEach((h,i)=>{
+    const cid   = String(h.hub_id);
+    const count = (res.clusters[cid]||[]).length;
+    const color = legendColors[i % legendColors.length];
+    legend.innerHTML += `<div class="legend-row">
+      <div class="legend-dot" style="background:${color}"></div>
+      <span>${h.name} <span class="text-muted">(${count})</span></span>
+    </div>`;
+  });
+  if(noiseCount>0){
+    legend.innerHTML += `<div class="legend-row">
+      <div class="noise-dot"></div>
+      <span style="color:var(--danger)">Аномалії / шум (${noiseCount})</span>
+    </div>`;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  COURIER PANEL
+// ═══════════════════════════════════════════
+function initCourierMap(){
+  courierMap = L.map('courier-map').setView([50.45,30.55],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap',maxZoom:19
+  }).addTo(courierMap);
+}
+
+function refreshCourierUI(){
+  // Populate courier selector
+  const sel = document.getElementById('courier-select');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">-- Оберіть кур\'єра --</option>';
+  G.couriers.forEach(c=>{
+    const vIcons = {'Піший':'🚶','Велосипед':'🚲','Мотоцикл':'🏍️','Авто':'🚗','Мікровантажівка':'🚐'};
+    sel.innerHTML += `<option value="${c.courier_id}">${vIcons[c.vehicle_type]||'📦'} ${c.name} (${c.vehicle_type})</option>`;
+  });
+  if(prev) sel.value = prev;
+
+  // Populate hub selector
+  const fhub = document.getElementById('f-hub');
+  fhub.innerHTML = '<option value="">Усі хаби</option>';
+  G.hubs.forEach(h=>{
+    fhub.innerHTML += `<option value="${h.hub_id}">${h.name}</option>`;
+  });
+
+  onCourierChange();
+  applyFilter();
+}
+
+function onCourierChange(){
+  const cid = parseInt(document.getElementById('courier-select').value);
+  selectedCourierId = cid || null;
+  const courier = G.couriers.find(c=>c.courier_id===cid);
+  const box = document.getElementById('courier-info');
+  if(courier){
+    box.style.display = 'block';
+    document.getElementById('courier-info-box').innerHTML =
+      `<b>${courier.name}</b> | ${courier.vehicle_type} | Хаб: ${hubName(courier.hub_id)}<br>
+       ⚖️ Макс. вага: ${courier.max_weight} кг | 💰 Мін. ціна: ${courier.min_price} грн | 📏 Макс. дистанція: ${courier.max_dist_km} км`;
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function loadCourierDefaults(){
+  const cid = parseInt(document.getElementById('courier-select').value);
+  const courier = G.couriers.find(c=>c.courier_id===cid);
+  if(!courier){ toast('⚠️ Оберіть кур\'єра'); return; }
+  document.getElementById('f-max-weight').value = courier.max_weight;
+  document.getElementById('f-min-price').value  = courier.min_price;
+  document.getElementById('f-max-dist').value   = courier.max_dist_km;
+  document.getElementById('f-hub').value        = courier.hub_id;
+  toast('ℹ️ Завантажено параметри кур\'єра');
+  applyFilter();
+}
+
+async function applyFilter(){
+  if(!G.orders.length) return;
+  const maxW = document.getElementById('f-max-weight').value;
+  const minP = document.getElementById('f-min-price').value;
+  const maxP = document.getElementById('f-max-price').value;
+  const maxD = document.getElementById('f-max-dist').value;
+  const hubId = document.getElementById('f-hub').value;
+
+  const body = {};
+  if(maxW) body.max_weight = parseFloat(maxW);
+  if(minP) body.min_price  = parseFloat(minP);
+  if(maxP) body.max_price  = parseFloat(maxP);
+  if(maxD) body.max_dist   = parseFloat(maxD);
+  if(hubId) body.hub_id    = parseInt(hubId);
+
+  try{
+    const res = await api('/api/courier/orders','POST',body);
+    renderOrdersTable(res.orders);
+    renderCourierMap(res.orders);
+  }catch(e){ toast('❌ '+e.message); }
+}
+
+function clearFilter(){
+  ['f-max-weight','f-min-price','f-max-price','f-max-dist'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('f-hub').value='';
+  applyFilter();
+}
+
+function renderOrdersTable(orders){
+  const tbody = document.getElementById('orders-tbody');
+  const noOrders = document.getElementById('no-orders');
+  document.getElementById('orders-count').textContent = orders.length;
+
+  if(!orders.length){
+    tbody.innerHTML='';
+    noOrders.style.display='block';
+    return;
+  }
+  noOrders.style.display='none';
+
+  tbody.innerHTML = orders.map(o=>{
+    const hubIdx = G.hubs.findIndex(h=>h.hub_id===o.hub_id);
+    const color  = hubIdx>=0 ? clusterColorByIndex(hubIdx, G.hubs.length) : '#9ca3af';
+    const sel    = o.order_id===selectedOrderId ? 'selected' : '';
+    return `<tr class="${sel}" onclick="selectOrder(${o.order_id})" style="cursor:pointer">
+      <td>#${o.order_id}</td>
+      <td>${o.weight} кг</td>
+      <td><b>${o.price}</b> грн</td>
+      <td><span style="width:8px;height:8px;border-radius:50%;display:inline-block;background:${color};margin-right:4px"></span>${o.hub_id ? hubName(o.hub_id).replace('Маркет ','') : '—'}</td>
+      <td>${o.dist != null ? o.dist+' км' : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function selectOrder(oid){
+  selectedOrderId = oid;
+  const order = G.orders.find(o=>o.order_id===oid);
+  if(!order) return;
+
+  // Highlight row
+  document.querySelectorAll('#orders-tbody tr').forEach(r=>r.classList.remove('selected'));
+  document.querySelectorAll('#orders-tbody tr').forEach(r=>{
+    if(r.textContent.includes('#'+oid)) r.classList.add('selected');
+  });
+
+  // Show detail
+  document.getElementById('selected-order-info').style.display='block';
+  const hubIdx = G.hubs.findIndex(h=>h.hub_id===order.hub_id);
+  const color  = hubIdx>=0 ? clusterColorByIndex(hubIdx, G.hubs.length) : '#9ca3af';
+  document.getElementById('sel-order-box').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div style="width:40px;height:40px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:18px">📦</div>
+      <div><div style="font-size:16px;font-weight:700">Замовлення #${order.order_id}</div>
+      <div style="color:var(--text2);font-size:12px">Статус: ${order.status}</div></div>
+    </div>
+    <table style="width:100%;font-size:13px">
+      <tr><td style="width:40%;color:var(--text2);padding:4px 0">⚖️ Вага</td><td><b>${order.weight} кг</b></td></tr>
+      <tr><td style="color:var(--text2);padding:4px 0">💰 Ціна</td><td><b>${order.price} грн</b></td></tr>
+      <tr><td style="color:var(--text2);padding:4px 0">📍 Хаб</td><td>${order.hub_id ? hubName(order.hub_id) : 'Не призначено'}</td></tr>
+      <tr><td style="color:var(--text2);padding:4px 0">🗺️ Координати</td><td class="font-mono">${order.lat}, ${order.lon}</td></tr>
+    </table>
+  `;
+
+  document.getElementById('btn-accept').disabled = (order.status !== 'Вільне');
+
+  // Pan map
+  if(courierMap) courierMap.setView([order.lat, order.lon], 14);
+  highlightOrderOnMap(oid);
+}
+
+function renderCourierMap(orders){
+  if(!courierMap) return;
+  courierMapMarkers.forEach(m=>courierMap.removeLayer(m));
+  courierMapMarkers = [];
+
+  const clusterColors = makeClusterColors(G.hubs.length || 1);
+
+  orders.forEach(o=>{
+    const hubIdx = G.hubs.findIndex(h=>h.hub_id===o.hub_id);
+    const color  = hubIdx>=0 ? clusterColors[hubIdx % clusterColors.length] : '#9ca3af';
+    const m = L.circleMarker([o.lat, o.lon],{
+      radius:7, color:'#fff', weight:1.5, fillColor:color, fillOpacity:0.9
+    });
+    m.bindPopup(`<div class="map-popup">
+      <strong>#${o.order_id}</strong>
+      <table>
+        <tr><td>Вага:</td><td>${o.weight}кг</td></tr>
+        <tr><td>Ціна:</td><td>${o.price}грн</td></tr>
+        ${o.dist!=null?`<tr><td>Відстань:</td><td>${o.dist}км</td></tr>`:''}
+      </table>
+    </div>`);
+    m.on('click',()=>selectOrder(o.order_id));
+    m.addTo(courierMap);
+    courierMapMarkers.push(m);
+  });
+
+  // Hubs
+  G.hubs.forEach((h,i)=>{
+    const color = clusterColors[i % clusterColors.length];
+    const icon  = L.divIcon({
+      className:'',
+      html:`<div style="background:${color};width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.3)"></div>`,
+      iconSize:[22,22], iconAnchor:[11,22]
+    });
+    const m = L.marker([h.lat,h.lon],{icon}).bindPopup(`<b>${h.name}</b>`);
+    m.addTo(courierMap);
+    courierMapMarkers.push(m);
+  });
+
+  if(orders.length){
+    const pts = orders.map(o=>[o.lat,o.lon]);
+    courierMap.fitBounds(L.latLngBounds(pts).pad(0.1));
+  }
+}
+
+function highlightOrderOnMap(oid){
+  // briefly animate the selected marker
+}
+
+async function acceptOrder(){
+  if(!selectedOrderId){ toast('⚠️ Оберіть замовлення'); return; }
+  if(!selectedCourierId){ toast('⚠️ Оберіть кур\'єра'); return; }
+  loading(true,'Прийняття замовлення...');
+  try{
+    await api('/api/courier/accept','POST',{order_id:selectedOrderId, courier_id:selectedCourierId});
+    await refreshState();
+    applyFilter();
+    toast(`✅ Замовлення #${selectedOrderId} прийнято в роботу`);
+    selectedOrderId = null;
+    document.getElementById('selected-order-info').style.display='none';
+    document.getElementById('btn-accept').disabled = true;
+  }catch(e){ toast('❌ '+e.message); }
+  finally{ loading(false); }
+}
+
+async function completeOrder(oid){
+  loading(true,'...');
+  try{
+    await api('/api/courier/complete','POST',{order_id:oid});
+    await refreshState();
+    showRouteSheet();
+    toast(`✅ Замовлення #${oid} виконано`);
+  }catch(e){ toast('❌ '+e.message); }
+  finally{ loading(false); }
+}
+
+function showRouteSheet(){
+  const myOrders = G.orders.filter(o=>o.courier_id===selectedCourierId && o.status!=='Вільне');
+  const body = document.getElementById('route-body');
+  if(!myOrders.length){
+    body.innerHTML = '<div class="info-box warn">Немає прийнятих замовлень. Оберіть та прийміть замовлення.</div>';
+  } else {
+    const totalPrice = myOrders.reduce((s,o)=>s+o.price,0).toFixed(2);
+    const totalWeight = myOrders.reduce((s,o)=>s+o.weight,0).toFixed(2);
+    const routeColors = makeClusterColors(Math.max(G.hubs.length, myOrders.length));
+    body.innerHTML = myOrders.map((o,i)=>{
+      const color = routeColors[i % routeColors.length];
+      return `
+      <div class="route-item" style="border-left-color:${color}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>Зупинка ${i+1} — #${o.order_id}</strong>
+          ${o.status==='В роботі'?`<button class="btn btn-success btn-sm" onclick="completeOrder(${o.order_id})">✔ Виконано</button>`:
+            `<span class="badge badge-done">Виконано</span>`}
+        </div>
+        <div style="font-size:12px;margin-top:6px;color:var(--text2)">
+          📍 ${o.lat.toFixed(5)}, ${o.lon.toFixed(5)}<br>
+          ⚖️ ${o.weight}кг &nbsp; 💰 ${o.price}грн &nbsp; 📊 ${o.status}
+        </div>
+      </div>
+    `}).join('');
+    body.innerHTML += `<div class="route-total">
+      📋 Всього замовлень: ${myOrders.length}<br>
+      ⚖️ Загальна вага: ${totalWeight} кг<br>
+      💰 Очікуваний заробіток: ${totalPrice} грн
+    </div>`;
+  }
+  document.getElementById('route-sheet').classList.add('visible');
+}
+
+function hideRouteSheet(){
+  document.getElementById('route-sheet').classList.remove('visible');
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  refreshState();
+});
+</script>
+</body>
+</html>
