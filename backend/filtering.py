@@ -17,8 +17,8 @@ def _haversine(lat1, lon1, lat2, lon2):
 
 
 def filter_orders(orders, max_weight=None, min_price=None,
-                  max_price=None, min_weight=None,
-                  max_dist_km=None, hub_coords=None):
+                max_price=None, min_weight=None,
+                max_dist_km=None, hub_coords=None):
     """
     Застосовує систему логічних предикатів до масиву замовлень.
 
@@ -49,7 +49,7 @@ def filter_orders(orders, max_weight=None, min_price=None,
         dist_km = None
         if hub_coords is not None:
             dist_km = _haversine(hub_coords[0], hub_coords[1],
-                                 order["lat"], order["lon"])
+                                order["lat"], order["lon"])
             if max_dist_km is not None and dist_km > max_dist_km:
                 continue
         enriched         = dict(order)

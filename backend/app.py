@@ -24,12 +24,11 @@ def add_cors(r):
     r.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
     return r
 
-# In-memory state
 state = {
     "hubs": [],
     "orders": [],
     "couriers": [],
-    "clusters": {},   # hub_id -> [order_ids]
+    "clusters": {},
     "clustered": False
 }
 
@@ -37,11 +36,6 @@ state = {
 @app.route('/')
 def index():
     return send_from_directory('../frontend', 'index.html')
-
-
-# ─────────────────────────────────────────────
-# СЦЕНАРІЙ: генерація / завантаження
-# ─────────────────────────────────────────────
 
 @app.route('/api/scenario/generate', methods=['POST'])
 def generate():
@@ -97,7 +91,6 @@ def upload():
                 except ValueError as e:
                     return jsonify({"error": f"Рядок {i+2}: {e}"}), 422
         else:
-            # Excel
             if f.filename.endswith(('.xlsx', '.xlsm')):
                 df = pd.read_excel(f, engine='openpyxl')
             elif f.filename.endswith('.xls'):
@@ -162,7 +155,6 @@ def upload_couriers():
                 except ValueError as e:
                     return jsonify({"error": f"Рядок {i+2}: {e}"}), 422
         else:
-            # Excel
             if f.filename.endswith(('.xlsx', '.xlsm')):
                 df = pd.read_excel(f, engine='openpyxl')
             elif f.filename.endswith('.xls'):
@@ -205,11 +197,6 @@ def get_state():
         "clustered": state["clustered"]
     })
 
-
-# ─────────────────────────────────────────────
-# ДИСПЕТЧЕР: кластеризація
-# ─────────────────────────────────────────────
-
 @app.route('/api/cluster', methods=['POST'])
 def cluster():
     if not state["orders"]:
@@ -232,14 +219,12 @@ def cluster():
     else:
         return jsonify({"error": "Невідомий алгоритм"}), 400
 
-    # Update orders with hub assignments
     hub_map = {o['order_id']: o for o in state["orders"]}
     for order_id, hub_id in result["assignments"].items():
         if order_id in hub_map:
             hub_map[order_id]["hub_id"] = hub_id
             hub_map[order_id]["status"] = "Вільне" if hub_id is not None else "Аномалія"
 
-    # Build clusters dict
     clusters = {}
     for hub in hubs:
         clusters[str(hub["hub_id"])] = []
@@ -263,11 +248,6 @@ def cluster():
         "exec_ms":    result.get("exec_ms")
     })
 
-
-# ─────────────────────────────────────────────
-# КУР'ЄР: фільтрація
-# ─────────────────────────────────────────────
-
 @app.route('/api/courier/orders', methods=['POST'])
 def courier_orders():
     """Повертає замовлення для кур'єра з фільтрацією."""
@@ -289,9 +269,8 @@ def courier_orders():
             hub_coords = (hub["lat"], hub["lon"])
 
     filtered = filter_orders(orders, max_weight=max_weight, min_price=min_price, max_price=max_price,
-                             max_dist_km=max_dist, hub_coords=hub_coords)
+                            max_dist_km=max_dist, hub_coords=hub_coords)
     return jsonify({"orders": filtered, "count": len(filtered)})
-
 
 @app.route('/api/courier/accept', methods=['POST'])
 def accept_order():
@@ -321,11 +300,6 @@ def complete_order():
         return jsonify({"error": "Замовлення не знайдено"}), 404
     order["status"] = "Виконано"
     return jsonify({"status": "ok", "order": order})
-
-
-# ─────────────────────────────────────────────
-# ДИСПЕТЧЕР: статистика
-# ─────────────────────────────────────────────
 
 @app.route('/api/stats', methods=['GET'])
 def stats():

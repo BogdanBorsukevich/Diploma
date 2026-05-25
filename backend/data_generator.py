@@ -97,15 +97,13 @@ def generate_scenario(n_orders, n_hubs, n_couriers, lat_range, lon_range, noise_
     """
     random.seed(None)
 
-    # 1. Хаби з мінімальною відстанню
     hubs = []
     min_hub_distance = 0.05  # ~5 км
     attempts = 0
     max_attempts = 1000
     while len(hubs) < n_hubs and attempts < max_attempts:
         lat, lon = _rand_point(lat_range, lon_range)
-        # Перевірка на воду: уникати дуже низькі lat (приблизно для Києва)
-        if lat < lat_range[0] + 0.02:  # уникати південних областей, де може бути вода
+        if lat < lat_range[0] + 0.02:
             continue
         too_close = any(_distance(lat, lon, h["lat"], h["lon"]) < min_hub_distance for h in hubs)
         if not too_close:
@@ -117,7 +115,6 @@ def generate_scenario(n_orders, n_hubs, n_couriers, lat_range, lon_range, noise_
             })
         attempts += 1
     if len(hubs) < n_hubs:
-        # Якщо не вдалося, додати без перевірки
         for i in range(n_hubs - len(hubs)):
             lat, lon = _rand_point(lat_range, lon_range)
             hubs.append({
@@ -127,13 +124,11 @@ def generate_scenario(n_orders, n_hubs, n_couriers, lat_range, lon_range, noise_
                 "lon":    round(lon, 6),
             })
 
-    # 2. Замовлення
     n_noise   = max(1, int(n_orders * noise_pct))
     n_cluster = n_orders - n_noise
     orders    = []
     oid       = 1
 
-    # cluster-based orders: розподіл навколо хабів з більшим spread
     per_hub = n_cluster // n_hubs
     remainder = n_cluster % n_hubs
     for i, hub in enumerate(hubs):
@@ -144,7 +139,6 @@ def generate_scenario(n_orders, n_hubs, n_couriers, lat_range, lon_range, noise_
             lon = hub["lon"] + random.gauss(0, spread)
             lat = max(lat_range[0] - 0.1, min(lat_range[1] + 0.1, lat))
             lon = max(lon_range[0] - 0.1, min(lon_range[1] + 0.1, lon))
-            # Додаткова перевірка на воду
             if lat < lat_range[0] + 0.02:
                 lat += 0.05  # змістити на північ
             orders.append({
@@ -159,7 +153,6 @@ def generate_scenario(n_orders, n_hubs, n_couriers, lat_range, lon_range, noise_
             })
             oid += 1
 
-    # noise / outlier orders: далеко від хабів
     noise_lat_range = [lat_range[0] - 0.3, lat_range[0] - 0.1]
     noise_lon_range = [lon_range[1] + 0.1, lon_range[1] + 0.3]
     for _ in range(n_noise):
@@ -178,7 +171,6 @@ def generate_scenario(n_orders, n_hubs, n_couriers, lat_range, lon_range, noise_
 
     random.shuffle(orders)
 
-    # 3. Кур'єри
     couriers = []
     names_pool = COURIER_NAMES.copy()
     random.shuffle(names_pool)

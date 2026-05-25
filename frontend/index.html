@@ -3,15 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ЛогістикаКомплекс — Тестувально-навчальна система</title>
+<title>ЛогістичнийКомплекс — Тестувально-навчальна система</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=e-Ukraine:wght@300;400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-/* ═══════════════════════════════════════════
-   CSS VARIABLES & RESET
-═══════════════════════════════════════════ */
+
 :root {
   --bg:         #f0f2f5;
   --surface:    #ffffff;
@@ -40,9 +38,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 button{cursor:pointer;font-family:inherit}
 input,select{font-family:inherit}
 
-/* ═══════════════════════════════════════════
-   HEADER
-═══════════════════════════════════════════ */
+
 header{
   background:var(--accent);
   color:#fff;
@@ -60,9 +56,6 @@ header span.sub{font-size:12px;opacity:.75;white-space:nowrap}
 .hstat .n{font-size:18px;font-weight:700;line-height:1}
 .hstat .l{font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.5px}
 
-/* ═══════════════════════════════════════════
-   TABS
-═══════════════════════════════════════════ */
 .tabs{background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:0;flex-shrink:0;padding:0 16px}
 .tab-btn{
   padding:14px 20px;font-size:14px;font-weight:600;
@@ -74,14 +67,10 @@ header span.sub{font-size:12px;opacity:.75;white-space:nowrap}
 .tab-btn:hover{color:var(--text)}
 .tab-icon{font-size:16px}
 
-/* ═══════════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════════ */
 .main{display:flex;flex:1;overflow:hidden;min-height:0}
 .panel{display:none;flex:1;overflow:auto}
 .panel.active{display:flex}
 
-/* ════ SCENARIO PANEL ════ */
 #panel-scenario{flex-direction:column;padding:24px;gap:20px;max-width:900px;margin:0 auto;width:100%}
 .card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
 .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}
@@ -120,7 +109,6 @@ header span.sub{font-size:12px;opacity:.75;white-space:nowrap}
 .summary-tile .big{font-size:28px;font-weight:700;color:var(--accent)}
 .summary-tile .sm{font-size:12px;color:var(--text2);margin-top:4px}
 
-/* ════ DISPATCHER PANEL ════ */
 #panel-dispatch{flex-direction:row;overflow:hidden}
 .side-panel{width:320px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 .side-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
@@ -143,7 +131,6 @@ header span.sub{font-size:12px;opacity:.75;white-space:nowrap}
 .legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
 .noise-dot{background:#ff0000;width:10px;height:10px;border-radius:2px;flex-shrink:0}
 
-/* ════ COURIER PANEL ════ */
 #panel-courier{flex-direction:row;overflow:hidden}
 .courier-left{width:340px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 .courier-right{position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden}
@@ -171,21 +158,18 @@ table.orders-tbl tr.selected td{background:#eff6ff}
 .courier-selector label{font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap}
 .courier-selector select{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--surface2)}
 
-/* Map popup styles */
 .map-popup{font-family:var(--sans);min-width:160px}
 .map-popup strong{font-size:13px;display:block;margin-bottom:6px}
 .map-popup table{font-size:12px;border-collapse:collapse}
 .map-popup td{padding:2px 6px 2px 0}
 .map-popup td:first-child{font-weight:600;color:var(--text2)}
 
-/* Toast */
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
   background:#111;color:#fff;padding:10px 20px;border-radius:8px;
   font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;
   max-width:360px;text-align:center}
 #toast.show{opacity:1}
 
-/* Loading overlay */
 #loading{position:fixed;inset:0;background:rgba(255,255,255,.7);
   display:none;align-items:center;justify-content:center;z-index:10000;
   flex-direction:column;gap:12px;font-weight:600;font-size:14px;color:var(--accent)}
@@ -193,18 +177,15 @@ table.orders-tbl tr.selected td{background:#eff6ff}
 .spinner{width:32px;height:32px;border:3px solid #dbeafe;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* upload area */
 .upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2)}
 .upload-zone:hover{border-color:var(--accent);background:#eff6ff}
 .upload-zone input{display:none}
 
-/* info box */
 .info-box{padding:10px 14px;border-radius:7px;font-size:12px;line-height:1.6}
 .info-box.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
 .info-box.warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
 .info-box.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46}
 
-/* cluster colours for borders/dots */
 .cc-0{border-left-color:var(--c0)!important} .cc-1{border-left-color:var(--c1)!important}
 .cc-2{border-left-color:var(--c2)!important} .cc-3{border-left-color:var(--c3)!important}
 .cc-4{border-left-color:var(--c4)!important} .cc-5{border-left-color:var(--c5)!important}
@@ -219,7 +200,6 @@ table.orders-tbl tr.selected td{background:#eff6ff}
 </head>
 <body>
 
-<!-- ════════ HEADER ════════ -->
 <header>
   <div style="display:flex;align-items:center;gap:12px">
     <span style="font-size:22px">🗺️</span>
@@ -236,7 +216,6 @@ table.orders-tbl tr.selected td{background:#eff6ff}
   </div>
 </header>
 
-<!-- ════════ TABS ════════ -->
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('scenario')" id="tab-scenario">
     <span class="tab-icon">⚙️</span> Сценарій
@@ -249,10 +228,8 @@ table.orders-tbl tr.selected td{background:#eff6ff}
   </button>
 </div>
 
-<!-- ════════ PANELS ════════ -->
 <div class="main">
 
-<!-- ──── SCENARIO PANEL ──── -->
 <div class="panel active" id="panel-scenario">
   <div class="card">
     <div class="card-header">⚙️ Формування сценарію логістичного середовища</div>
@@ -339,14 +316,12 @@ table.orders-tbl tr.selected td{background:#eff6ff}
   </div>
 </div>
 
-<!-- ──── DISPATCH PANEL ──── -->
 <div class="panel" id="panel-dispatch">
   <div class="side-panel">
     <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;flex-shrink:0">
       🧮 Параметри кластеризації
     </div>
     <div class="side-body">
-      <!-- Algorithm selector -->
       <div>
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:8px">Алгоритм</div>
         <div class="algo-selector">
@@ -393,7 +368,6 @@ table.orders-tbl tr.selected td{background:#eff6ff}
         <div class="cluster-legend" id="cluster-legend"></div>
       </div>
 
-      <!-- Map controls -->
       <div class="sep"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm" onclick="fitMapBounds()">🗺️ Увесь регіон</button>
@@ -407,7 +381,6 @@ table.orders-tbl tr.selected td{background:#eff6ff}
   </div>
 </div>
 
-<!-- ──── COURIER PANEL ──── -->
 <div class="panel" id="panel-courier">
   <div class="courier-left">
     <div class="courier-selector">
@@ -487,7 +460,6 @@ table.orders-tbl tr.selected td{background:#eff6ff}
       <div id="courier-map" style="width:100%;height:100%"></div>
     </div>
 
-    <!-- Route sheet -->
     <div class="route-sheet" id="route-sheet">
       <div class="route-header">
         <strong>📋 Маршрутний лист</strong>
@@ -498,16 +470,14 @@ table.orders-tbl tr.selected td{background:#eff6ff}
   </div>
 </div>
 
-</div><!-- /main -->
+</div>
 
 <div id="toast"></div>
 <div id="loading"><div class="spinner"></div><span id="loading-text">Зачекайте...</span></div>
 
 <script>
-// ═══════════════════════════════════════════
-//  GLOBAL STATE
-// ═══════════════════════════════════════════
-const API = '';  // empty = same origin
+
+const API = '';
 let G = { hubs:[], orders:[], couriers:[], clusters:{}, clustered:false };
 let selectedOrderId = null;
 let selectedCourierId = null;
@@ -553,9 +523,7 @@ function clusterColorByIndex(idx, count){
   return palette[idx % palette.length];
 }
 
-// ═══════════════════════════════════════════
 //  UTILITIES
-// ═══════════════════════════════════════════
 function loading(on, msg='Обробка...'){
   document.getElementById('loading').classList.toggle('active',on);
   document.getElementById('loading-text').textContent = msg;
@@ -578,9 +546,6 @@ function hubName(hub_id){
   return h ? h.name : `Хаб #${hub_id}`;
 }
 
-// ═══════════════════════════════════════════
-//  TABS
-// ═══════════════════════════════════════════
 function switchTab(tab){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -591,9 +556,6 @@ function switchTab(tab){
   if(tab==='courier') refreshCourierUI();
 }
 
-// ═══════════════════════════════════════════
-//  SCENARIO
-// ═══════════════════════════════════════════
 async function generateScenario(){
   const params = {
     n_orders:   +document.getElementById('n_orders').value,
@@ -618,11 +580,10 @@ async function generateScenario(){
 async function uploadCSV(evt){
   const file = evt.target.files[0]; if(!file) return;
   
-  // Запитати кількість хабів
   const n_hubs_str = prompt('Скільки хабів створити?', '15');
   if(n_hubs_str === null) return;
   const n_hubs = parseInt(n_hubs_str) || 5;
-  const n_couriers = 8;  // фіксована кількість
+  const n_couriers = 8; 
   
   const fd = new FormData(); fd.append('file', file);
   loading(true,'Завантаження замовлень...');
@@ -630,14 +591,12 @@ async function uploadCSV(evt){
     const r = await fetch(API+'/api/scenario/upload',{method:'POST',body:fd});
     const d = await r.json();
     if(!r.ok) throw new Error(d.error);
-    // auto-gen hubs/couriers
     await api('/api/scenario/generate','POST',{
       n_orders:0, n_hubs, n_couriers,
       lat_range:[+document.getElementById('lat_min').value,+document.getElementById('lat_max').value],
       lon_range:[+document.getElementById('lon_min').value,+document.getElementById('lon_max').value],
       noise_pct:0
     });
-    // re-upload to restore orders
     const fd2 = new FormData(); fd2.append('file', file);
     await fetch(API+'/api/scenario/upload',{method:'POST',body:fd2});
     await refreshState();
@@ -702,9 +661,6 @@ function renderScenarioSummary(){
   ).join('');
 }
 
-// ═══════════════════════════════════════════
-//  DISPATCH MAP
-// ═══════════════════════════════════════════
 function initDispatchMap(){
   dispatchMap = L.map('dispatch-map').setView([50.45,30.55],11);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
@@ -715,7 +671,6 @@ function initDispatchMap(){
 
 function renderDispatchMap(){
   if(!dispatchMap) return;
-  // Clear old layers
   [dispatchLayers.orders, dispatchLayers.hubs, dispatchLayers.noise].forEach(l=>{if(l)l.clearLayers()});
   dispatchLayers.orders = L.layerGroup().addTo(dispatchMap);
   dispatchLayers.hubs   = L.layerGroup().addTo(dispatchMap);
@@ -723,12 +678,10 @@ function renderDispatchMap(){
 
   if(!G.orders.length) return;
 
-  // Hub index
   const hubIdx = {};
   G.hubs.forEach((h,i)=>hubIdx[h.hub_id]=i);
   const clusterColors = makeClusterColors(G.hubs.length || 1);
 
-  // Orders
   G.orders.forEach(o=>{
     const isNoise = o.status==='Аномалія' || o.hub_id===null && G.clustered;
     const color = isNoise ? '#ff0000' : (o.hub_id != null ? clusterColors[hubIdx[o.hub_id] % clusterColors.length] : '#9ca3af');
@@ -749,7 +702,6 @@ function renderDispatchMap(){
     else        dispatchLayers.orders.addLayer(marker);
   });
 
-  // Hubs
   G.hubs.forEach((h,i)=>{
     const color = clusterColors[i % clusterColors.length];
     const icon  = L.divIcon({
@@ -848,9 +800,6 @@ function renderClusterResults(res){
   }
 }
 
-// ═══════════════════════════════════════════
-//  COURIER PANEL
-// ═══════════════════════════════════════════
 function initCourierMap(){
   courierMap = L.map('courier-map').setView([50.45,30.55],12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
@@ -859,7 +808,6 @@ function initCourierMap(){
 }
 
 function refreshCourierUI(){
-  // Populate courier selector
   const sel = document.getElementById('courier-select');
   const prev = sel.value;
   sel.innerHTML = '<option value="">-- Оберіть кур\'єра --</option>';
@@ -869,7 +817,6 @@ function refreshCourierUI(){
   });
   if(prev) sel.value = prev;
 
-  // Populate hub selector
   const fhub = document.getElementById('f-hub');
   fhub.innerHTML = '<option value="">Усі хаби</option>';
   G.hubs.forEach(h=>{
@@ -968,13 +915,11 @@ function selectOrder(oid){
   const order = G.orders.find(o=>o.order_id===oid);
   if(!order) return;
 
-  // Highlight row
   document.querySelectorAll('#orders-tbody tr').forEach(r=>r.classList.remove('selected'));
   document.querySelectorAll('#orders-tbody tr').forEach(r=>{
     if(r.textContent.includes('#'+oid)) r.classList.add('selected');
   });
 
-  // Show detail
   document.getElementById('selected-order-info').style.display='block';
   const hubIdx = G.hubs.findIndex(h=>h.hub_id===order.hub_id);
   const color  = hubIdx>=0 ? clusterColorByIndex(hubIdx, G.hubs.length) : '#9ca3af';
@@ -1025,7 +970,6 @@ function renderCourierMap(orders){
     courierMapMarkers.push(m);
   });
 
-  // Hubs
   G.hubs.forEach((h,i)=>{
     const color = clusterColors[i % clusterColors.length];
     const icon  = L.divIcon({
@@ -1045,7 +989,6 @@ function renderCourierMap(orders){
 }
 
 function highlightOrderOnMap(oid){
-  // briefly animate the selected marker
 }
 
 async function acceptOrder(){
@@ -1112,9 +1055,6 @@ function hideRouteSheet(){
   document.getElementById('route-sheet').classList.remove('visible');
 }
 
-// ═══════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded',()=>{
   refreshState();
 });

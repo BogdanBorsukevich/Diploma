@@ -19,11 +19,7 @@ def _haversine(lat1, lon1, lat2, lon2):
     a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlam/2)**2
     return 2 * R * math.asin(math.sqrt(a))
 
-
-# ─────────────────────────────────────────────
 # K-Means (з фіксованими центроїдами = хаби)
-# ─────────────────────────────────────────────
-
 def run_kmeans(orders, hubs):
     """
     Реалізація K-Means з фіксованими центроїдами (координатами хабів).
@@ -64,11 +60,7 @@ def run_kmeans(orders, hubs):
     exec_ms = round((time.time() - t0) * 1000, 1)
     return {"assignments": assignments, "wcss": round(wcss, 2), "exec_ms": exec_ms}
 
-
-# ─────────────────────────────────────────────
 # DBSCAN
-# ─────────────────────────────────────────────
-
 def run_dbscan(orders, hubs, eps_km, min_pts):
     """
     DBSCAN з геодезичними відстанями.
@@ -80,7 +72,7 @@ def run_dbscan(orders, hubs, eps_km, min_pts):
     if n == 0:
         return {"assignments": {}, "wcss": None, "exec_ms": 0}
 
-    labels   = [-2] * n   # -2 = unvisited
+    labels   = [-2] * n 
     cluster_id = 0
 
     def range_query(idx):
@@ -116,19 +108,14 @@ def run_dbscan(orders, hubs, eps_km, min_pts):
     for i, o in enumerate(orders):
         lbl = labels[i]
         if lbl == -1:
-            assignments[o["order_id"]] = None   # Аномалія (шум)
+            assignments[o["order_id"]] = None
         else:
-            # Прив'язуємо замовлення до його найближчого хабу
             assignments[o["order_id"]] = nearest_hub(o["lat"], o["lon"])
 
     exec_ms = round((time.time() - t0) * 1000, 1)
     return {"assignments": assignments, "wcss": None, "exec_ms": exec_ms}
 
-
-# ─────────────────────────────────────────────
 # OPTICS
-# ─────────────────────────────────────────────
-
 def run_optics(orders, hubs, min_pts, max_eps=10.0):
     """
     Спрощена реалізація OPTICS.
@@ -197,7 +184,6 @@ def run_optics(orders, hubs, min_pts, max_eps=10.0):
                     reach_dist[j] = new_rd
                     seeds[j] = new_rd
 
-    # Extract clusters: group points where reach_dist <= threshold into clusters
     finite_rd = [r for r in reach_dist if r != UNDEFINED]
     if finite_rd:
         mean_rd = sum(finite_rd) / len(finite_rd)
@@ -205,7 +191,7 @@ def run_optics(orders, hubs, min_pts, max_eps=10.0):
     else:
         threshold = 0.1
 
-    labels = [-1] * n  # default noise
+    labels = [-1] * n
     cluster_id = 0
     in_cluster = False
     for pt in ordered_pts:
@@ -226,9 +212,8 @@ def run_optics(orders, hubs, min_pts, max_eps=10.0):
     for i, o in enumerate(orders):
         lbl = labels[i]
         if lbl == -1:
-            assignments[o["order_id"]] = None  # Аномалія (шум)
+            assignments[o["order_id"]] = None
         else:
-            # Прив'язуємо замовлення до його найближчого хабу
             assignments[o["order_id"]] = nearest_hub(o["lat"], o["lon"])
 
     exec_ms = round((time.time() - t0) * 1000, 1)
